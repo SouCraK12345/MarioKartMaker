@@ -35,6 +35,9 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        float driftKey = inputActions.Player.Drift.ReadValue<float>();
+        Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
+        bool drift = driftKey == 1f && angle.x > 0.2f;
         float accelerator = inputActions.Player.Accelerator.ReadValue<float>();
         if (accelerator == 1f)
         {
@@ -47,7 +50,14 @@ public class PlayerController : MonoBehaviour
         }
         speed /= speedDivisor;
 
-        rb.linearVelocity = transform.forward.normalized * speed;
+        if (drift)
+        {
+            rb.AddForce(transform.forward.normalized * speed);
+        }
+        else
+        {
+            move(transform.forward.normalized * speed);
+        }
 
         // 方向の補正
         Vector3 forward = mainCamera.transform.forward;
@@ -61,7 +71,7 @@ public class PlayerController : MonoBehaviour
         Quaternion newRotation = Quaternion.Slerp(
             rb.rotation,
             targetRotation,
-            speed / 15 * Time.fixedDeltaTime
+            (drift ? 15f : speed / 15) * Time.fixedDeltaTime
         );
 
         rb.MoveRotation(newRotation);
@@ -89,5 +99,10 @@ public class PlayerController : MonoBehaviour
         {
             touchingStages--;
         }
+    }
+
+    void move(Vector3 targetVelocity)
+    {
+        rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, targetVelocity, 0.1f);
     }
 }
