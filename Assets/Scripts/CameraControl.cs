@@ -28,7 +28,8 @@ public class CameraControl : MonoBehaviour
     void Update()
     {
         Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
-        angle_horizontal += angle.x / -50;
+        Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
+        angle_horizontal += (angle.x + angle_l.x) / -50;
         angle_vertical += angle.y / -50;
         mainCamera.transform.position = new Vector3(
             transform.position.x + Mathf.Cos(angle_horizontal) * Mathf.Cos(angle_vertical) * distance,

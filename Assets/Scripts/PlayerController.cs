@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-
     private InputSystem_Actions inputActions;
     private Rigidbody rb;
     public GameObject mainCamera;
@@ -37,7 +36,8 @@ public class PlayerController : MonoBehaviour
     {
         float driftKey = inputActions.Player.Drift.ReadValue<float>();
         Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
-        bool drift = driftKey == 1f && angle.x > 0.2f;
+        Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
+        bool drift = driftKey == 1f && (angle.x + angle_l.x) > 0.2f;
         float accelerator = inputActions.Player.Accelerator.ReadValue<float>();
         if (accelerator == 1f)
         {
