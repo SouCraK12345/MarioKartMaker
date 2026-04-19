@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     public float speed = 20f;
     public float maxSpeed = 20f;
     public float rotationSpeed = 2f;
+    private int touchingStages = 0;
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -58,6 +59,30 @@ public class PlayerController : MonoBehaviour
             {
                 rb.linearVelocity = rb.linearVelocity.normalized * maxSpeed;
             }
+        }
+        if (touchingStages > 0)
+        {
+            maxSpeed = 30;
+        }
+        else
+        {
+            maxSpeed = 15;
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "Stage")
+        {
+            touchingStages++;
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.tag == "Stage")
+        {
+            touchingStages--;
         }
     }
 }
