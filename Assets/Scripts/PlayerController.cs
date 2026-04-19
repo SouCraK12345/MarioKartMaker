@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -12,6 +13,8 @@ public class PlayerController : MonoBehaviour
     public float speed = 0;
     public float rotationSpeed = 2f;
     private int touchingStages = 0;
+    private bool lastDrift = false;
+    [SerializeField] private List<GameObject> ParticleSystems;
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -37,7 +40,7 @@ public class PlayerController : MonoBehaviour
         float driftKey = inputActions.Player.Drift.ReadValue<float>();
         Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
         Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
-        bool drift = driftKey == 1f && (angle.x + angle_l.x) > 0.2f;
+        bool drift = driftKey == 1f && Mathf.Abs(angle.x + angle_l.x) > 0.2f;
         float accelerator = inputActions.Player.Accelerator.ReadValue<float>();
         if (accelerator == 1f)
         {
@@ -83,6 +86,14 @@ public class PlayerController : MonoBehaviour
         {
             speedDivisor = 1.066f;
         }
+        if(drift != lastDrift)
+        {
+            foreach (GameObject obj in ParticleSystems)
+            {
+                obj.SetActive(drift);
+            }
+        }
+        lastDrift = drift;
     }
 
     void OnTriggerEnter(Collider other)
@@ -104,5 +115,10 @@ public class PlayerController : MonoBehaviour
     void move(Vector3 targetVelocity)
     {
         rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, targetVelocity, 0.1f);
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log(collision.gameObject.name);
     }
 }

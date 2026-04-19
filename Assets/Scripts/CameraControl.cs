@@ -4,9 +4,10 @@ using UnityEngine;
 public class CameraControl : MonoBehaviour
 {
     public GameObject mainCamera;
+    public GameObject forCamera;
     private float angle_horizontal = 0;
     private float angle_vertical = 0.4f;
-    private float distance = 10f; // カメラの距離
+    private float distance = 6f; // カメラの距離
     private InputSystem_Actions inputActions;
 
     void Awake()
@@ -36,6 +37,6 @@ public class CameraControl : MonoBehaviour
             transform.position.y + Mathf.Sin(angle_vertical) * distance,
             transform.position.z + Mathf.Sin(angle_horizontal) * Mathf.Cos(angle_vertical) * distance
         );
-        mainCamera.transform.LookAt(this.transform);
+        mainCamera.transform.LookAt(forCamera.transform);
     }
 }
