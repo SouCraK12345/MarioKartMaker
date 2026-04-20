@@ -2,6 +2,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System;
 
 public class PlayerController : MonoBehaviour
 {
@@ -14,7 +15,14 @@ public class PlayerController : MonoBehaviour
     public float rotationSpeed = 2f;
     private int touchingStages = 0;
     private bool lastDrift = false;
+    private float minDrift = 0;
+    private string Action = "none";
     [SerializeField] private List<GameObject> ParticleSystems;
+
+    public GameObject forCamera;
+    private float angle_horizontal = 0;
+    private float angle_vertical = 0.4f;
+    private float distance = 6f; // カメラの距離
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -23,11 +31,15 @@ public class PlayerController : MonoBehaviour
     void OnEnable()
     {
         inputActions.Enable();
+        inputActions.Player.Drift.performed += startAction;
+        inputActions.Player.Drift.canceled += endAction;
     }
 
     void OnDisable()
     {
         inputActions.Disable();
+        inputActions.Player.Drift.performed -= startAction;
+        inputActions.Player.Drift.canceled -= endAction;
     }
 
     void Start()
@@ -35,12 +47,29 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
     }
 
-    void FixedUpdate()
+    void Update()
     {
-        float driftKey = inputActions.Player.Drift.ReadValue<float>();
         Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
         Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
-        bool drift = driftKey == 1f && Mathf.Abs(angle.x + angle_l.x) > 0.2f;
+        if (Action == "Drift" && Math.Abs(angle.x + angle_l.x) < 0.2)
+        {
+            angle_horizontal += minDrift / -50;
+        }
+        else
+        {
+            angle_horizontal += (angle.x + angle_l.x) / -50;
+        }
+        angle_vertical += angle.y / -50;
+        mainCamera.transform.position = new Vector3(
+            transform.position.x + Mathf.Cos(angle_horizontal) * Mathf.Cos(angle_vertical) * distance,
+            transform.position.y + Mathf.Sin(angle_vertical) * distance,
+            transform.position.z + Mathf.Sin(angle_horizontal) * Mathf.Cos(angle_vertical) * distance
+        );
+        mainCamera.transform.LookAt(forCamera.transform);
+    }
+
+    void FixedUpdate()
+    {
         float accelerator = inputActions.Player.Accelerator.ReadValue<float>();
         if (accelerator == 1f)
         {
@@ -53,7 +82,7 @@ public class PlayerController : MonoBehaviour
         }
         speed /= speedDivisor;
 
-        if (drift)
+        if (Action == "Drift")
         {
             rb.AddForce(transform.forward.normalized * speed);
         }
@@ -74,7 +103,7 @@ public class PlayerController : MonoBehaviour
         Quaternion newRotation = Quaternion.Slerp(
             rb.rotation,
             targetRotation,
-            (drift ? 15f : speed / 15) * Time.fixedDeltaTime
+            (Action == "Drift" ? 15f : speed / 15) * Time.fixedDeltaTime
         );
 
         rb.MoveRotation(newRotation);
@@ -86,14 +115,14 @@ public class PlayerController : MonoBehaviour
         {
             speedDivisor = 1.066f;
         }
-        if(drift != lastDrift)
+        if ((Action == "Drift") != lastDrift)
         {
             foreach (GameObject obj in ParticleSystems)
             {
-                obj.SetActive(drift);
+                obj.SetActive(Action == "Drift");
             }
         }
-        lastDrift = drift;
+        lastDrift = Action == "Drift";
     }
 
     void OnTriggerEnter(Collider other)
@@ -120,5 +149,28 @@ public class PlayerController : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         Debug.Log(collision.gameObject.name);
+    }
+
+    void startAction(InputAction.CallbackContext context)
+    {
+        // Debug.Log("Rボタンが押された");
+        Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
+        Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
+        if (Mathf.Abs(angle.x + angle_l.x) > 0.2f)
+        {
+            Action = "Drift";
+            minDrift = ((angle.x + angle_l.x) > 0) ? 0.2f : -0.2f;
+        }
+        else
+        {
+            Action = "ChargeJump";
+        }
+        Debug.Log(Action);
+    }
+
+    void endAction(InputAction.CallbackContext context)
+    {
+        // Debug.Log("Rボタンが押された");
+        Action = "None";
     }
 }
