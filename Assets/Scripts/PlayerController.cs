@@ -13,10 +13,13 @@ public class PlayerController : MonoBehaviour
     public float speedDivisor = 1.033f;
     public float speed = 0;
     public float rotationSpeed = 2f;
+    [SerializeField] private float chargeJumpThreshold = 1f;
+    [SerializeField] private float chargeJumpReleaseForce = 5f;
     private int touchingStages = 0;
     private bool lastDrift = false;
     private float minDrift = 0;
     private string Action = "none";
+    private float chargeJumpStartTime = -1f;
     [SerializeField] private List<GameObject> ParticleSystems;
 
     public GameObject forCamera;
@@ -53,13 +56,13 @@ public class PlayerController : MonoBehaviour
         Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
         if (Action != "ChargeJump")
         {
-            if (Action == "Drift" && Math.Abs(angle.x + angle_l.x) < 0.2)
+            if (Action == "Drift" && Math.Abs(angle.x + angle_l.x) < 0.4)
             {
-                angle_horizontal += minDrift / -50;
+                angle_horizontal += minDrift / -35 * (Time.deltaTime * 60);
             }
             else
             {
-                angle_horizontal += (angle.x + angle_l.x) / -50;
+                angle_horizontal += (angle.x + angle_l.x) / -35 * (Time.deltaTime * 60);
             }
         }
         angle_vertical += angle.y / -50;
@@ -87,7 +90,7 @@ public class PlayerController : MonoBehaviour
 
         if (Action == "Drift")
         {
-            rb.AddForce(transform.forward.normalized * speed);
+            rb.AddForce(transform.forward.normalized * speed / 1.5f);
         }
         else
         {
@@ -170,21 +173,44 @@ public class PlayerController : MonoBehaviour
         {
             Action = "Drift";
             minDrift = ((angle.x + angle_l.x) > 0) ? 0.4f : -0.4f;
+            chargeJumpStartTime = -1f;
         }
         else
         {
             Action = "ChargeJump";
+            chargeJumpStartTime = Time.time;
         }
         foreach (GameObject obj in ParticleSystems)
         {
             obj.SetActive(true);
         }
-        Debug.Log(Action);
     }
 
     void endAction(InputAction.CallbackContext context)
     {
+        Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
+        Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
         // Debug.Log("Rボタンが押された");
+        bool releasedChargedJump = Action == "ChargeJump"
+            && chargeJumpStartTime >= 0f
+            && Time.time - chargeJumpStartTime >= chargeJumpThreshold;
+
+        if (releasedChargedJump)
+        {
+            rb.AddForce(transform.up * chargeJumpReleaseForce, ForceMode.Impulse);
+            if (angle.x + angle_l.x > 0.2f)
+            {
+                Debug.Log("Right");
+                rb.AddForce(transform.right * 30, ForceMode.Impulse);
+            }
+            if (angle.x + angle_l.x < -0.2f)
+            {
+                Debug.Log("Left");
+                rb.AddForce(-transform.right * 30, ForceMode.Impulse);
+            }
+        }
+
+        chargeJumpStartTime = -1f;
         Action = "None";
         foreach (GameObject obj in ParticleSystems)
         {
