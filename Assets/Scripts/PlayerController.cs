@@ -51,13 +51,16 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
         Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
-        if (Action == "Drift" && Math.Abs(angle.x + angle_l.x) < 0.2)
+        if (Action != "ChargeJump")
         {
-            angle_horizontal += minDrift / -50;
-        }
-        else
-        {
-            angle_horizontal += (angle.x + angle_l.x) / -50;
+            if (Action == "Drift" && Math.Abs(angle.x + angle_l.x) < 0.2)
+            {
+                angle_horizontal += minDrift / -50;
+            }
+            else
+            {
+                angle_horizontal += (angle.x + angle_l.x) / -50;
+            }
         }
         angle_vertical += angle.y / -50;
         mainCamera.transform.position = new Vector3(
@@ -115,13 +118,13 @@ public class PlayerController : MonoBehaviour
         {
             speedDivisor = 1.066f;
         }
-        if ((Action == "Drift") != lastDrift)
-        {
-            foreach (GameObject obj in ParticleSystems)
-            {
-                obj.SetActive(Action == "Drift");
-            }
-        }
+        // if ((Action == "Drift") != lastDrift)
+        // {
+        //     foreach (GameObject obj in ParticleSystems)
+        //     {
+        //         obj.SetActive(Action == "Drift");
+        //     }
+        // }
         lastDrift = Action == "Drift";
     }
 
@@ -143,7 +146,14 @@ public class PlayerController : MonoBehaviour
 
     void move(Vector3 targetVelocity)
     {
-        rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, targetVelocity, 0.1f);
+        Vector3 currentVelocity = rb.linearVelocity;
+        Vector3 horizontalVelocity = Vector3.Lerp(
+            new Vector3(currentVelocity.x, 0f, currentVelocity.z),
+            new Vector3(targetVelocity.x, 0f, targetVelocity.z),
+            0.1f
+        );
+
+        rb.linearVelocity = new Vector3(horizontalVelocity.x, currentVelocity.y, horizontalVelocity.z);
     }
 
     void OnCollisionEnter(Collision collision)
@@ -159,11 +169,15 @@ public class PlayerController : MonoBehaviour
         if (Mathf.Abs(angle.x + angle_l.x) > 0.2f)
         {
             Action = "Drift";
-            minDrift = ((angle.x + angle_l.x) > 0) ? 0.2f : -0.2f;
+            minDrift = ((angle.x + angle_l.x) > 0) ? 0.4f : -0.4f;
         }
         else
         {
             Action = "ChargeJump";
+        }
+        foreach (GameObject obj in ParticleSystems)
+        {
+            obj.SetActive(true);
         }
         Debug.Log(Action);
     }
@@ -172,5 +186,9 @@ public class PlayerController : MonoBehaviour
     {
         // Debug.Log("Rボタンが押された");
         Action = "None";
+        foreach (GameObject obj in ParticleSystems)
+        {
+            obj.SetActive(false);
+        }
     }
 }
