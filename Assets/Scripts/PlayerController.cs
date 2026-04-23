@@ -73,6 +73,24 @@ public class PlayerController : MonoBehaviour
             transform.position.z + Mathf.Sin(angle_horizontal) * Mathf.Cos(angle_vertical) * distance
         );
         mainCamera.transform.LookAt(forCamera.transform);
+
+        int phase = 0;
+        if (Time.time - chargeJumpStartTime >= chargeJumpThreshold && Action == "ChargeJump")
+        {
+            phase = 1;
+        }
+        string[] colors = { "#00EDFF", "#ff2600" };
+
+        foreach (GameObject obj in ParticleSystems)
+        {
+            var ps = obj.GetComponent<ParticleSystem>();
+            var main = ps.main;
+
+            if (ColorUtility.TryParseHtmlString(colors[phase], out var color))
+            {
+                main.startColor = color;
+            }
+        }
     }
 
     void FixedUpdate()

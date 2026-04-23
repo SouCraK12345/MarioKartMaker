@@ -4555,7 +4555,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1
+      scalar: 0.1
       minScalar: 5
       maxCurve:
         serializedVersion: 2
@@ -21895,6 +21895,8 @@ MonoBehaviour:
   speedDivisor: 1.033
   speed: 20
   rotationSpeed: 2
+  chargeJumpThreshold: 1
+  chargeJumpReleaseForce: 5
   ParticleSystems:
   - {fileID: 1998902449}
   - {fileID: 455325818}
@@ -29331,7 +29333,7 @@ ParticleSystem:
     startLifetime:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 1
+      scalar: 0.1
       minScalar: 5
       maxCurve:
         serializedVersion: 2
