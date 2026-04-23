@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float chargeJumpThreshold = 1f;
     [SerializeField] private float chargeJumpReleaseForce = 5f;
     private int touchingStages = 0;
+    private int touchingObjects = 0;
     private bool lastDrift = false;
     private float minDrift = 0;
     private string Action = "none";
@@ -76,17 +77,20 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        float accelerator = inputActions.Player.Accelerator.ReadValue<float>();
-        if (accelerator == 1f)
+        if (touchingObjects > 0)
         {
-            speed++;
+            float accelerator = inputActions.Player.Accelerator.ReadValue<float>();
+            if (accelerator == 1f)
+            {
+                speed++;
+            }
+            float back = inputActions.Player.Back.ReadValue<float>();
+            if (back == 1f)
+            {
+                speed--;
+            }
+            speed /= speedDivisor;
         }
-        float back = inputActions.Player.Back.ReadValue<float>();
-        if (back == 1f)
-        {
-            speed--;
-        }
-        speed /= speedDivisor;
 
         if (Action == "Drift")
         {
@@ -162,6 +166,12 @@ public class PlayerController : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         Debug.Log(collision.gameObject.name);
+        touchingObjects++;
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        touchingObjects--;
     }
 
     void startAction(InputAction.CallbackContext context)
