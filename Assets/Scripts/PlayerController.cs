@@ -15,12 +15,17 @@ public class PlayerController : MonoBehaviour
     public float rotationSpeed = 2f;
     [SerializeField] private float chargeJumpThreshold = 1f;
     [SerializeField] private float chargeJumpReleaseForce = 5f;
+    [SerializeField] private float driftBoostThreshold = 1f;
+    [SerializeField] private float driftBoostAmount = 10f;
     private int touchingStages = 0;
     private int touchingObjects = 0;
     private bool lastDrift = false;
     private float minDrift = 0;
     private string Action = "none";
     private float chargeJumpStartTime = -1f;
+    private float driftStartTime = -1f;
+    private float driftAngleSum = 0f; // ドリフト中の累積角度
+    [SerializeField] private float driftBoostAngleThreshold = 60f; // ドリフト加速の角度閾値（度）
     [SerializeField] private List<GameObject> ParticleSystems;
 
     public GameObject forCamera;
@@ -75,8 +80,15 @@ public class PlayerController : MonoBehaviour
         );
         mainCamera.transform.LookAt(forCamera.transform);
 
+        // ドリフト中の累積角度を加算
+        if (Action == "Drift")
+        {
+            driftAngleSum += Mathf.Abs(angle.x + angle_l.x) * (Time.deltaTime * 60); // 1フレームごとの角度変化を加算
+        }
+
         int phase = 0;
-        if (Time.time - chargeJumpStartTime >= chargeJumpThreshold && Action == "ChargeJump")
+        if ((Time.time - chargeJumpStartTime >= chargeJumpThreshold && Action == "ChargeJump") ||
+            (Action == "Drift" && driftAngleSum >= driftBoostAngleThreshold))
         {
             phase = 1;
         }
@@ -184,7 +196,6 @@ public class PlayerController : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        Debug.Log(collision.gameObject.name);
         touchingObjects++;
     }
 
@@ -203,11 +214,13 @@ public class PlayerController : MonoBehaviour
             Action = "Drift";
             minDrift = ((angle.x + angle_l.x) > 0) ? 0.4f : -0.4f;
             chargeJumpStartTime = -1f;
+            driftStartTime = Time.time;
         }
         else
         {
             Action = "ChargeJump";
             chargeJumpStartTime = Time.time;
+            driftStartTime = -1f;
         }
         foreach (GameObject obj in ParticleSystems)
         {
@@ -220,9 +233,17 @@ public class PlayerController : MonoBehaviour
         Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
         Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
         // Debug.Log("Rボタンが押された");
+        bool releasedDrift = Action == "Drift"
+            && driftStartTime >= 0f
+            && driftAngleSum >= driftBoostAngleThreshold;
         bool releasedChargedJump = Action == "ChargeJump"
             && chargeJumpStartTime >= 0f
             && Time.time - chargeJumpStartTime >= chargeJumpThreshold;
+
+        if (releasedDrift)
+        {
+            speed += driftBoostAmount;
+        }
 
         if (releasedChargedJump)
         {
@@ -240,6 +261,8 @@ public class PlayerController : MonoBehaviour
         }
 
         chargeJumpStartTime = -1f;
+        driftStartTime = -1f;
+        driftAngleSum = 0f; // リセット
         Action = "None";
         foreach (GameObject obj in ParticleSystems)
         {
