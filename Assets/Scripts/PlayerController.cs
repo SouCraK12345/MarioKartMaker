@@ -27,6 +27,7 @@ public class PlayerController : MonoBehaviour
     private float angle_horizontal = 0;
     private float angle_vertical = 0.4f;
     private float distance = 6f; // カメラの距離
+    public Animator model;
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -228,12 +229,12 @@ public class PlayerController : MonoBehaviour
             rb.AddForce(transform.up * chargeJumpReleaseForce, ForceMode.Impulse);
             if (angle.x + angle_l.x > 0.2f)
             {
-                Debug.Log("Right");
+                model.SetTrigger("JumpAction_Right");
                 rb.AddForce(transform.right * 30, ForceMode.Impulse);
             }
             if (angle.x + angle_l.x < -0.2f)
             {
-                Debug.Log("Left");
+                model.SetTrigger("JumpAction_Left");
                 rb.AddForce(-transform.right * 30, ForceMode.Impulse);
             }
         }
