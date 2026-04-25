@@ -21530,7 +21530,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 1
-  m_Constraints: 112
+  m_Constraints: 80
   m_CollisionDetection: 1
 --- !u!33 &1595770160
 MeshFilter:
@@ -21901,17 +21901,15 @@ MonoBehaviour:
   chargeJumpThreshold: 1
   chargeJumpReleaseForce: 4
   driftBoostAmount: 10
-  Action: None
+  Action: none
   driftBoostAngleThreshold: 60
   ParticleSystems:
   - {fileID: 1998902449}
   - {fileID: 455325818}
   - {fileID: 1301108591}
   - {fileID: 1787234376}
-  jumpCount: 0
   forCamera: {fileID: 295902102}
   model: {fileID: 1955357840}
-  model_transform: {fileID: 1354141862}
 --- !u!136 &1595770168
 CapsuleCollider:
   m_ObjectHideFlags: 0

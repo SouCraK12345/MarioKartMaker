@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
+using System.Diagnostics;
 
 public class PlayerController : MonoBehaviour
 {
@@ -14,25 +15,26 @@ public class PlayerController : MonoBehaviour
     public float speed = 0;
     public float rotationSpeed = 2f;
     [SerializeField] private float chargeJumpThreshold = 1f;
-    [SerializeField] private float chargeJumpReleaseForce = 5f;
-    [SerializeField] private float driftBoostThreshold = 1f;
+    [SerializeField] private float chargeJumpReleaseForce = 10f;
     [SerializeField] private float driftBoostAmount = 10f;
     private int touchingStages = 0;
     private int touchingObjects = 0;
     private bool lastDrift = false;
     private float minDrift = 0;
-    private string Action = "none";
+    public string Action = "None";
     private float chargeJumpStartTime = -1f;
     private float driftStartTime = -1f;
     private float driftAngleSum = 0f; // ドリフト中の累積角度
     [SerializeField] private float driftBoostAngleThreshold = 60f; // ドリフト加速の角度閾値（度）
     [SerializeField] private List<GameObject> ParticleSystems;
-
+    public int jumpCount = 0;
     public GameObject forCamera;
     private float angle_horizontal = 0;
     private float angle_vertical = 0.4f;
     private float distance = 6f; // カメラの距離
     public Animator model;
+    public Transform model_transform;
+    private int wallrun_direction = 0;
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -104,6 +106,46 @@ public class PlayerController : MonoBehaviour
                 main.startColor = color;
             }
         }
+
+
+        if (Action == "WallRun")
+        {
+            if (wallrun_direction == 1)
+            {
+                rb.AddForce(transform.right * 5, ForceMode.Acceleration);
+            }
+            else
+            {
+                rb.AddForce(transform.right * -5, ForceMode.Acceleration);
+            }
+
+            RaycastHit hit;
+
+            // 壁がなければ壁走りを終了
+            if (!Physics.Raycast(transform.position, transform.right, out hit, 1f) && !Physics.Raycast(transform.position, -transform.right, out hit, 1f))
+            {
+                stopWallRun();
+            }
+        }
+        if (jumpCount > 0 && Action != "WallRun")
+        {
+            RaycastHit hit;
+
+            if (Physics.Raycast(transform.position, transform.right, out hit, 1f))
+            {
+                if (hit.collider.gameObject.name != "Player")
+                {
+                    startWallRun(1);
+                }
+            }
+            else if (Physics.Raycast(transform.position, -transform.right, out hit, 1f))
+            {
+                if (hit.collider.gameObject.name != "Player")
+                {
+                    startWallRun(2);
+                }
+            }
+        }
     }
 
     void FixedUpdate()
@@ -132,23 +174,38 @@ public class PlayerController : MonoBehaviour
             move(transform.forward.normalized * speed);
         }
 
-        // 方向の補正
-        Vector3 forward = mainCamera.transform.forward;
-        forward.y = 0f;
+        // ウォールラン中にスティック上下で上下移動
+        if (Action == "WallRun")
+        {
+            Vector2 moveInput = inputActions.Player.Move.ReadValue<Vector2>();
+            float verticalInput = moveInput.y;
+            if (Mathf.Abs(verticalInput) > 0.05f)
+            {
+                float wallRunVerticalForce = 8f; // 必要に応じて調整
+                rb.AddForce(transform.up * verticalInput * wallRunVerticalForce, ForceMode.Acceleration);
+            }
+        }
 
-        if (forward.sqrMagnitude < 0.001f) return;
+        if (Action != "WallRun")
+        {
+            // 方向の補正
+            Vector3 forward = mainCamera.transform.forward;
+            forward.y = 0f;
 
-        Quaternion targetRotation = Quaternion.LookRotation(forward);
+            // if (forward.sqrMagnitude < 0.001f) return;
 
-        // 補間（0〜1の割合）
-        Quaternion newRotation = Quaternion.Slerp(
-            rb.rotation,
-            targetRotation,
-            (Action == "Drift" ? 15f : speed / 15) * Time.fixedDeltaTime
-        );
+            Quaternion targetRotation = Quaternion.LookRotation(forward);
 
-        rb.MoveRotation(newRotation);
-        if (touchingStages > 0)
+            // 補間（0〜1の割合）
+            Quaternion newRotation = Quaternion.Slerp(
+                rb.rotation,
+                targetRotation,
+                (Action == "Drift" ? 15f : speed / 15) * Time.fixedDeltaTime
+            );
+
+            rb.MoveRotation(newRotation);
+        }
+        if (touchingStages > 0 || (Action == "WallRun"))
         {
             speedDivisor = 1.033f;
         }
@@ -156,13 +213,6 @@ public class PlayerController : MonoBehaviour
         {
             speedDivisor = 1.066f;
         }
-        // if ((Action == "Drift") != lastDrift)
-        // {
-        //     foreach (GameObject obj in ParticleSystems)
-        //     {
-        //         obj.SetActive(Action == "Drift");
-        //     }
-        // }
         lastDrift = Action == "Drift";
     }
 
@@ -197,6 +247,7 @@ public class PlayerController : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         touchingObjects++;
+        jumpCount = 0;
     }
 
     void OnCollisionExit(Collision collision)
@@ -206,6 +257,27 @@ public class PlayerController : MonoBehaviour
 
     void startAction(InputAction.CallbackContext context)
     {
+        if (touchingObjects == 0)
+        {
+            return;
+        }
+        if (Action == "WallRun")
+        {
+            Action = "None";
+            stopWallRun();
+            jumpCount++;
+            rb.AddForce(transform.up * chargeJumpReleaseForce, ForceMode.Impulse);
+            if (wallrun_direction == 1)
+            {
+                model.SetTrigger("JumpAction_Left");
+                rb.AddForce(-transform.right * 30, ForceMode.Impulse);
+            }
+            else
+            {
+                model.SetTrigger("JumpAction_Right");
+                rb.AddForce(transform.right * 30, ForceMode.Impulse);
+            }
+        }
         // Debug.Log("Rボタンが押された");
         Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
         Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
@@ -247,6 +319,7 @@ public class PlayerController : MonoBehaviour
 
         if (releasedChargedJump)
         {
+            jumpCount++;
             rb.AddForce(transform.up * chargeJumpReleaseForce, ForceMode.Impulse);
             if (angle.x + angle_l.x > 0.2f)
             {
@@ -268,5 +341,22 @@ public class PlayerController : MonoBehaviour
         {
             obj.SetActive(false);
         }
+    }
+
+    void startWallRun(int direction)
+    {
+        wallrun_direction = direction;
+        Action = "WallRun";
+        rb.useGravity = false;
+        model.SetInteger("WallRun", direction);
+        UnityEngine.Debug.Log("WallRun Start: " + direction);
+    }
+
+    void stopWallRun()
+    {
+        model.SetInteger("WallRun", 0);
+        Action = "None";
+        rb.useGravity = true;
+        UnityEngine.Debug.Log("WallRun Stop");
     }
 }
