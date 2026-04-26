@@ -23004,8 +23004,8 @@ MonoBehaviour:
   goalTrigger: {fileID: 1922070763}
   goalSubTrigger: {fileID: 1403495760}
   lapCount: 0
-  LapText: {fileID: 1677512228}
-  TimerText: {fileID: 1290781615}
+  LapText: {fileID: 1677512226}
+  TimerText: {fileID: 1290781613}
   lapSound: {fileID: 8300000, guid: bb375d3afbe6d3948a9362dcea5f1c0e, type: 3}
   goalSound: {fileID: 8300000, guid: 868435978f1d46945bb24500e5126764, type: 3}
   bgmAudioSource: {fileID: 1599099661}

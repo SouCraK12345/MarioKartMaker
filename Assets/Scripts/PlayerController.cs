@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviour
     AudioSource audioSource;
     public GameObject Countdown;
     public GameObject FinishEffect;
-
+    public GameObject RunningUI;
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -307,6 +307,8 @@ public class PlayerController : MonoBehaviour
                     audioSource.PlayOneShot(goalSound);
                     bgmAudioSource.Stop();
                     FinishEffect.SetActive(true);
+                    RunningUI.SetActive(false);
+                    Invoke("ShowResult", 2f);
                 }
                 else if (lapCount != 1)
                 {
@@ -459,5 +461,10 @@ public class PlayerController : MonoBehaviour
         model.SetInteger("WallRun", 0);
         Action = "None";
         rb.useGravity = true;
+    }
+    
+    void ShowResult()
+    {
+        FinishEffect.SetActive(false);
     }
 }
