@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
+using System.Collections;
 using System.Diagnostics;
+using TMPro;
+using UnityEditor.SceneManagement;
+using SerializableDictionary.Scripts;
 
 public class PlayerController : MonoBehaviour
 {
@@ -35,9 +39,27 @@ public class PlayerController : MonoBehaviour
     public Animator model;
     public Transform model_transform;
     private int wallrun_direction = 0;
+    public GameObject goalTrigger;
+    public GameObject goalSubTrigger;
+    private bool hasGoalTriggered = false;
+    private bool hasSubGoalTriggered = false;
+    public int lapCount = 0;
+    public TextMeshProUGUI LapText;
+    public TextMeshProUGUI TimerText;
+    private float startTime;
+    public AudioClip lapSound;
+    public AudioClip goalSound;
+    public AudioSource bgmAudioSource;
+    [SerializeField] private SerializableDictionary<string, AudioClip> _bgm;
+    public string StageName = "Circuit";
+    AudioSource audioSource;
+    public GameObject Countdown;
+    public GameObject FinishEffect;
+
     void Awake()
     {
         inputActions = new InputSystem_Actions();
+        audioSource = GetComponent<AudioSource>();
     }
 
     void OnEnable()
@@ -57,6 +79,7 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        StartCoroutine(startCountDown());
     }
 
     void Update()
@@ -146,6 +169,47 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+        float elapsed = Time.time - startTime;
+
+        int minutes = (int)(elapsed / 60);
+        float seconds = elapsed % 60;
+
+        string formattedTime = string.Format("{0}:{1:00.000}", minutes, seconds);
+        string timerLabelText = string.Join(" ", formattedTime.ToCharArray());
+        // 00:00.000 形式で表示
+        TimerText.text = timerLabelText;
+    }
+
+    void hideCountDown()
+    {
+        Countdown.SetActive(false);
+    }
+
+    IEnumerator startCountDown()
+    {
+        yield return new WaitForSeconds(3f);
+        Countdown.SetActive(true);
+        Countdown.GetComponent<TextMeshProUGUI>().text = "3";
+        Countdown.GetComponent<Animator>().SetTrigger("Trigger");
+        yield return new WaitForSeconds(1f);
+        Countdown.GetComponent<TextMeshProUGUI>().text = "2";
+        Countdown.GetComponent<Animator>().SetTrigger("Trigger");
+        yield return new WaitForSeconds(1f);
+        Countdown.GetComponent<TextMeshProUGUI>().text = "1";
+        Countdown.GetComponent<Animator>().SetTrigger("Trigger");
+        yield return new WaitForSeconds(1f);
+        Countdown.GetComponent<TextMeshProUGUI>().text = "G o !";
+        Countdown.GetComponent<Animator>().SetTrigger("Trigger");
+        StartProcess();
+        yield return new WaitForSeconds(1f);
+        Countdown.SetActive(false);
+    }
+
+    void StartProcess()
+    {
+        startTime = Time.time;
+        bgmAudioSource.clip = _bgm.Get(StageName);
+        bgmAudioSource.Play();
     }
 
     void FixedUpdate()
@@ -221,6 +285,45 @@ public class PlayerController : MonoBehaviour
         if (other.gameObject.tag == "Stage")
         {
             touchingStages++;
+        }
+        if (other.gameObject == goalTrigger)
+        {
+            hasGoalTriggered = true;
+            if (hasSubGoalTriggered)
+            {
+                hasGoalTriggered = false;
+                hasSubGoalTriggered = false;
+                lapCount++;
+                LapText.text = lapCount.ToString();
+                if (lapCount == 4)
+                {
+                    float elapsed = Time.time - startTime;
+
+                    int minutes = (int)(elapsed / 60);
+                    float seconds = elapsed % 60;
+
+                    string formattedTime = string.Format("{0}:{1:00.000}", minutes, seconds);
+                    UnityEngine.Debug.Log("ゴール！タイム: " + formattedTime);
+                    audioSource.PlayOneShot(goalSound);
+                    bgmAudioSource.Stop();
+                    FinishEffect.SetActive(true);
+                }
+                else if (lapCount != 1)
+                {
+                    audioSource.PlayOneShot(lapSound);
+                }
+            }
+        }
+        if (other.gameObject == goalSubTrigger)
+        {
+            hasSubGoalTriggered = true;
+            if (hasGoalTriggered)
+            {
+                hasGoalTriggered = false;
+                hasSubGoalTriggered = false;
+                lapCount--;
+                LapText.text = lapCount.ToString();
+            }
         }
     }
 
@@ -349,7 +452,6 @@ public class PlayerController : MonoBehaviour
         Action = "WallRun";
         rb.useGravity = false;
         model.SetInteger("WallRun", direction);
-        UnityEngine.Debug.Log("WallRun Start: " + direction);
     }
 
     void stopWallRun()
@@ -357,6 +459,5 @@ public class PlayerController : MonoBehaviour
         model.SetInteger("WallRun", 0);
         Action = "None";
         rb.useGravity = true;
-        UnityEngine.Debug.Log("WallRun Stop");
     }
 }
