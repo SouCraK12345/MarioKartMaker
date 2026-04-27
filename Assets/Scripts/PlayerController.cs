@@ -56,6 +56,7 @@ public class PlayerController : MonoBehaviour
     public GameObject Countdown;
     public GameObject FinishEffect;
     public GameObject RunningUI;
+    private bool started = false;
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -80,6 +81,7 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         StartCoroutine(startCountDown());
+        bgmAudioSource.clip = _bgm.Get(StageName);
     }
 
     void Update()
@@ -174,6 +176,7 @@ public class PlayerController : MonoBehaviour
         int minutes = (int)(elapsed / 60);
         float seconds = elapsed % 60;
 
+        if(!started) return;
         string formattedTime = string.Format("{0}:{1:00.000}", minutes, seconds);
         string timerLabelText = string.Join(" ", formattedTime.ToCharArray());
         // 00:00.000 形式で表示
@@ -207,13 +210,14 @@ public class PlayerController : MonoBehaviour
 
     void StartProcess()
     {
+        started = true;
         startTime = Time.time;
-        bgmAudioSource.clip = _bgm.Get(StageName);
         bgmAudioSource.Play();
     }
 
     void FixedUpdate()
     {
+        if(!started) return;
         if (touchingObjects > 0)
         {
             float accelerator = inputActions.Player.Accelerator.ReadValue<float>();
