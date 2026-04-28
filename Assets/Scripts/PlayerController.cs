@@ -58,6 +58,7 @@ public class PlayerController : MonoBehaviour
     public GameObject Countdown;
     public GameObject FinishEffect;
     public GameObject FinishTimeText;
+    private float finishTime;
     public GameObject RunningUI;
     private bool started = false;
     void Awake()
@@ -310,7 +311,7 @@ public class PlayerController : MonoBehaviour
                     float seconds = elapsed % 60;
 
                     string formattedTime = string.Format("{0}:{1:00.000}", minutes, seconds);
-                    UnityEngine.Debug.Log("ゴール！タイム: " + formattedTime);
+                    finishTime = elapsed;
                     audioSource.PlayOneShot(goalSound);
                     bgmAudioSource.Stop();
                     FinishEffect.SetActive(true);
@@ -472,9 +473,8 @@ public class PlayerController : MonoBehaviour
 
     void ShowResult()
     {
-        // FinishEffect.SetActive(false);
         FinishTimeText.SetActive(true);
-        float elapsed = Time.time - startTime;
+        float elapsed = finishTime;
         int minutes = (int)(elapsed / 60);
         float seconds = elapsed % 60;
         string formattedTime = string.Format("{0}:{1:00.000}", minutes, seconds);
