@@ -8,6 +8,8 @@ using System.Diagnostics;
 using TMPro;
 using UnityEditor.SceneManagement;
 using SerializableDictionary.Scripts;
+using System.Linq;
+using System.Threading;
 
 public class PlayerController : MonoBehaviour
 {
@@ -55,6 +57,7 @@ public class PlayerController : MonoBehaviour
     AudioSource audioSource;
     public GameObject Countdown;
     public GameObject FinishEffect;
+    public GameObject FinishTimeText;
     public GameObject RunningUI;
     private bool started = false;
     void Awake()
@@ -176,7 +179,7 @@ public class PlayerController : MonoBehaviour
         int minutes = (int)(elapsed / 60);
         float seconds = elapsed % 60;
 
-        if(!started) return;
+        if (!started) return;
         string formattedTime = string.Format("{0}:{1:00.000}", minutes, seconds);
         string timerLabelText = string.Join(" ", formattedTime.ToCharArray());
         // 00:00.000 形式で表示
@@ -217,7 +220,7 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if(!started) return;
+        if (!started) return;
         if (touchingObjects > 0)
         {
             float accelerator = inputActions.Player.Accelerator.ReadValue<float>();
@@ -466,9 +469,17 @@ public class PlayerController : MonoBehaviour
         Action = "None";
         rb.useGravity = true;
     }
-    
+
     void ShowResult()
     {
-        FinishEffect.SetActive(false);
+        // FinishEffect.SetActive(false);
+        FinishTimeText.SetActive(true);
+        float elapsed = Time.time - startTime;
+        int minutes = (int)(elapsed / 60);
+        float seconds = elapsed % 60;
+        string formattedTime = string.Format("{0}:{1:00.000}", minutes, seconds);
+        // 空白一個を入れる
+        string timerLabelText = string.Join(" ", formattedTime.ToCharArray());
+        FinishTimeText.GetComponent<TextMeshProUGUI>().text = timerLabelText;
     }
 }
