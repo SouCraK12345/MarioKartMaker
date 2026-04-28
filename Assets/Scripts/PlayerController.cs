@@ -53,6 +53,7 @@ public class PlayerController : MonoBehaviour
     public AudioClip goalSound;
     public AudioSource bgmAudioSource;
     [SerializeField] private SerializableDictionary<string, AudioClip> _bgm;
+    public bool playBGM = true;
     public string StageName = "Circuit";
     AudioSource audioSource;
     public GameObject Countdown;
@@ -216,7 +217,10 @@ public class PlayerController : MonoBehaviour
     {
         started = true;
         startTime = Time.time;
-        bgmAudioSource.Play();
+        if (playBGM)
+        {
+            bgmAudioSource.Play();
+        }
     }
 
     void FixedUpdate()
