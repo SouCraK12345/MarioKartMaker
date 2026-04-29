@@ -10618,7 +10618,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 7897f8dbca2e3de46871dd294ed0e8da, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 7897f8dbca2e3de46871dd294ed0e8da, type: 3}
       propertyPath: m_LocalPosition.z
@@ -12432,7 +12432,7 @@ Transform:
   m_GameObject: {fileID: 789692883}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 25, y: 0.5, z: 0}
+  m_LocalPosition: {x: 60, y: 0.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -24519,7 +24519,6 @@ MonoBehaviour:
   acceleration: 20
   speedDivisor: 1.033
   speed: 0
-  rotationSpeed: 2
   chargeJumpThreshold: 1
   chargeJumpReleaseForce: 6
   driftBoostAmount: 10
@@ -24552,6 +24551,7 @@ MonoBehaviour:
   FinishEffect: {fileID: 2142111901}
   FinishTimeText: {fileID: 30757444}
   RunningUI: {fileID: 529803908}
+  started: 0
 --- !u!136 &1595770168
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -24889,6 +24889,7 @@ GameObject:
   - component: {fileID: 1611079360}
   - component: {fileID: 1611079359}
   - component: {fileID: 1611079358}
+  - component: {fileID: 1611079361}
   m_Layer: 0
   m_Name: CPU
   m_TagString: Untagged
@@ -24910,6 +24911,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CPU
   agent: {fileID: 1611079359}
   target: {fileID: 789692884}
+  playerController: {fileID: 1595770166}
+  phase: 0
+  acceleration: 20
+  speedDivisor: 1.033
+  speed: 0
+  rotationSpeed: 90
 --- !u!195 &1611079359
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -24920,15 +24927,15 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 3.5
-  m_Acceleration: 8
+  m_Speed: 0
+  m_Acceleration: 0
   avoidancePriority: 50
   m_AngularSpeed: 120
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 2
+  m_Height: 1
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
@@ -24940,14 +24947,41 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1611079357}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 75.11258, y: 1.2, z: -70.8285}
+  m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 5, y: 1.5, z: -35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 238785042}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
+--- !u!54 &1611079361
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1611079357}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1612674317 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8979025723596409895, guid: 15836acc26c0f5944a4444ba09a728ef, type: 3}

@@ -19,7 +19,7 @@ public class PlayerController : MonoBehaviour
     public float acceleration = 20f;
     public float speedDivisor = 1.033f;
     public float speed = 0;
-    public float rotationSpeed = 2f;
+    // public float rotationSpeed = 2f;
     [SerializeField] private float chargeJumpThreshold = 1f;
     [SerializeField] private float chargeJumpReleaseForce = 10f;
     [SerializeField] private float driftBoostAmount = 10f;
@@ -61,7 +61,7 @@ public class PlayerController : MonoBehaviour
     public GameObject FinishTimeText;
     private float finishTime;
     public GameObject RunningUI;
-    private bool started = false;
+    public bool started = false;
     void Awake()
     {
         inputActions = new InputSystem_Actions();
