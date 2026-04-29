@@ -36,7 +36,10 @@ public class CPU : MonoBehaviour
         {
             hasReset = true;
         }
-        target.position = targetPosition[phase % targetPosition.Count];
+        if (targetPosition.Count != 0)
+        {
+            target.position = targetPosition[phase % targetPosition.Count];
+        }
     }
     void FixedUpdate()
     {
