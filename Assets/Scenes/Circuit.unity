@@ -24545,7 +24545,7 @@ MonoBehaviour:
     _pairs:
     - _key: Circuit
       _value: {fileID: 8300000, guid: 8e15e1e2a85d4884c958e047c407bee9, type: 3}
-  playBGM: 0
+  playBGM: 1
   StageName: Circuit
   Countdown: {fileID: 1662153482}
   FinishEffect: {fileID: 2142111901}
