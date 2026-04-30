@@ -5,8 +5,8 @@ using UnityEngine.AI;
 
 public class CPU : MonoBehaviour
 {
-    [SerializeField]
-    private NavMeshAgent agent;
+    // [SerializeField]
+    // private NavMeshAgent agent;
     [SerializeField]
     private Transform target;
     public PlayerController playerController;
@@ -19,15 +19,17 @@ public class CPU : MonoBehaviour
     public float speed = 0;
     public float rotationSpeed;
     private Rigidbody rb;
+    private NavMeshPath path;
     void Start()
     {
-        agent.isStopped = true;
+        path = new NavMeshPath();
     }
     void Update()
     {
-        agent.SetDestination(target.position);
+        // agent.SetDestination(target.position);
         rb = GetComponent<Rigidbody>();
-        if (agent.remainingDistance < 10 && hasReset)
+        // if (agent.remainingDistance < 10 && hasReset)
+        if (GetPathRemainingDistance() < 10f && hasReset)
         {
             phase++;
             hasReset = false;
@@ -53,7 +55,8 @@ public class CPU : MonoBehaviour
         {
             move(transform.forward.normalized * speed);
         }
-        Vector3 targetDir = (agent.steeringTarget - transform.position).normalized;
+        // Vector3 targetDir = (agent.steeringTarget - transform.position).normalized;
+        Vector3 targetDir = getTargetDir();
 
         if (targetDir != Vector3.zero)
         {
@@ -76,5 +79,29 @@ public class CPU : MonoBehaviour
         );
 
         rb.linearVelocity = new Vector3(horizontalVelocity.x, currentVelocity.y, horizontalVelocity.z);
+    }
+
+    Vector3 getTargetDir()
+    {
+        if (NavMesh.CalculatePath(transform.position, target.position, NavMesh.AllAreas, path))
+        {
+            // 経路のコーナーが2つ以上あれば、次の曲がり角への方向を出す
+            if (path.corners.Length > 1)
+            {
+                Vector3 nextCorner = path.corners[1];
+                Vector3 direction = nextCorner - transform.position;
+                direction.y = 0;
+                return direction.normalized;
+            }
+        }
+        Vector3 direction2 = target.position - transform.position;
+        direction2.y = 0;
+        return direction2.normalized;
+    }
+
+    float GetPathRemainingDistance()
+    {
+        Vector3 diff = transform.position - target.transform.position;
+        return diff.magnitude;
     }
 }
