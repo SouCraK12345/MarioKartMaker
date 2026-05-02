@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
@@ -22,7 +23,7 @@ public class CPU : MonoBehaviour
     private NavMeshPath path;
     public bool autoDriving = false;
     public bool autoCamera = false;
-    private Camera MainCamera;
+    public Transform MainCamera;
     void Start()
     {
         path = new NavMeshPath();
@@ -32,7 +33,20 @@ public class CPU : MonoBehaviour
         if (!autoDriving) return;
         if (autoCamera)
         {
-            
+            Vector3 mainPlayerPosition = transform.position;
+
+            float speed = 0.5f;   // 回転速度（調整用）
+            float radius = 10.0f; // 距離
+
+            float angle = Time.time * speed;
+
+            MainCamera.position = new Vector3(
+                mainPlayerPosition.x + Mathf.Sin(angle) * radius,
+                mainPlayerPosition.y + 5,
+                mainPlayerPosition.z + Mathf.Cos(angle) * radius
+            );
+
+            MainCamera.LookAt(mainPlayerPosition);
         }
         // agent.SetDestination(target.position);
         rb = GetComponent<Rigidbody>();

@@ -66,6 +66,7 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         inputActions = new InputSystem_Actions();
+        GetComponent<PlayerInput>().neverAutoSwitchControlSchemes = true;
         audioSource = GetComponent<AudioSource>();
     }
 
@@ -106,7 +107,7 @@ public class PlayerController : MonoBehaviour
                 angle_horizontal += (angle.x + angle_l.x) / -35 * (Time.deltaTime * 60);
             }
         }
-        angle_vertical += angle.y / -50;
+        angle_vertical += angle.y / -50 * (Time.deltaTime * 60);
         mainCamera.transform.position = new Vector3(
             transform.position.x + Mathf.Cos(angle_horizontal) * Mathf.Cos(angle_vertical) * distance,
             transform.position.y + Mathf.Sin(angle_vertical) * distance,
@@ -309,6 +310,7 @@ public class PlayerController : MonoBehaviour
             {
                 hasGoalTriggered = false;
                 hasSubGoalTriggered = false;
+                if (GlobalVariables.playMode == "FreeRun" || GlobalVariables.playMode == "Opening") return;
                 lapCount++;
                 LapText.text = lapCount.ToString();
                 if (lapCount == 4)

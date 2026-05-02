@@ -5,10 +5,12 @@ using Unity.VisualScripting;
 using UnityEditor.ProBuilder;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
     private InputSystem_Actions inputActions;
+    public GameObject Panel;
     [SerializeField] private List<Animator> Menus;
     [SerializeField] private List<Animator> HomeSelector;
     [SerializeField] private List<Animator> SoloPlayMenu;
@@ -22,6 +24,7 @@ public class MenuManager : MonoBehaviour
     void Awake()
     {
         inputActions = new InputSystem_Actions();
+        GetComponent<PlayerInput>().neverAutoSwitchControlSchemes = true;
         audioSource = GetComponent<AudioSource>();
         selectedIndex = 0;
     }
@@ -47,10 +50,13 @@ public class MenuManager : MonoBehaviour
         int fixedIndex = (selectedIndex % HomeSelector.Count + HomeSelector.Count) % HomeSelector.Count;
         int index = 0;
         var selectedMenu = new List<List<Animator>> { HomeSelector, SoloPlayMenu };
-        foreach (var animator in selectedMenu[showingMenuIndex])
+        if (showingMenuIndex != -1)
         {
-            animator.SetBool("Selected", index == fixedIndex);
-            index++;
+            foreach (var animator in selectedMenu[showingMenuIndex])
+            {
+                animator.SetBool("Selected", index == fixedIndex);
+                index++;
+            }
         }
         index = 0;
         foreach (var animator in Menus)
@@ -76,6 +82,18 @@ public class MenuManager : MonoBehaviour
                 selectedIndex = 0;
             }
         }
+        if (showingMenuIndex == 1)
+        {
+            if (selectedIndex == 2)
+            {
+                showingMenuIndex = -1;
+                GlobalVariables.playMode = "FreeRun";
+                GlobalVariables.playModeChanged = true;
+                Panel.SetActive(false);
+                OnDisable();
+                Invoke("CloseMenuScene", 1f);
+            }
+        }
         audioSource.PlayOneShot(Confirm);
     }
     void CancelAction(InputAction.CallbackContext ctx)
@@ -86,5 +104,9 @@ public class MenuManager : MonoBehaviour
             selectedIndex = 0;
         }
         audioSource.PlayOneShot(Cancel);
+    }
+    void CloseMenuScene()
+    {
+        SceneManager.UnloadSceneAsync("Menu");
     }
 }
