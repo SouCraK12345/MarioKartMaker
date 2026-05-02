@@ -20,12 +20,20 @@ public class CPU : MonoBehaviour
     public float rotationSpeed;
     private Rigidbody rb;
     private NavMeshPath path;
+    public bool autoDriving = false;
+    public bool autoCamera = false;
+    private Camera MainCamera;
     void Start()
     {
         path = new NavMeshPath();
     }
     void Update()
     {
+        if (!autoDriving) return;
+        if (autoCamera)
+        {
+            
+        }
         // agent.SetDestination(target.position);
         rb = GetComponent<Rigidbody>();
         // if (agent.remainingDistance < 10 && hasReset)
@@ -45,10 +53,7 @@ public class CPU : MonoBehaviour
     }
     void FixedUpdate()
     {
-        if (!playerController.started)
-        {
-            return;
-        }
+        if (!autoDriving) return;
         speed++;
         speed /= speedDivisor;
         if (rb != null)

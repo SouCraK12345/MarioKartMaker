@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a3afc94073b65d459c2aabb25c3727c, type: 3}
+  m_Name: Prov_UGUI_Dropdown_Default
+  m_EditorClassIdentifier: 
+  prefabs:
+  - {fileID: 1128951223845872711, guid: a8da93e5ca0adce4285687de471cbf00, type: 3}
+  - {fileID: 3885877915747790685, guid: 90c82ee8480702e46ae423a4c0e48bc8, type: 3}

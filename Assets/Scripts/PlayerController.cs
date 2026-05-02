@@ -6,7 +6,7 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using TMPro;
-using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 using SerializableDictionary.Scripts;
 using System.Linq;
 using System.Threading;
@@ -62,6 +62,7 @@ public class PlayerController : MonoBehaviour
     private float finishTime;
     public GameObject RunningUI;
     public bool started = false;
+    public bool driving = false;
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -85,12 +86,13 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        StartCoroutine(startCountDown());
+        // StartCoroutine(startCountDown());
         bgmAudioSource.clip = _bgm.Get(StageName);
     }
 
     void Update()
     {
+        if (!driving) return;
         Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
         Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
         if (Action != "ChargeJump")
@@ -225,6 +227,8 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+
+        if (!driving) return;
         if (!started) return;
         if (touchingObjects > 0)
         {
