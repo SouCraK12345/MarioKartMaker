@@ -4,12 +4,13 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System;
 using System.Collections;
-using System.Diagnostics;
+// using System.Diagnostics;
 using TMPro;
 using UnityEngine.SceneManagement;
 using SerializableDictionary.Scripts;
 using System.Linq;
 using System.Threading;
+
 
 public class PlayerController : MonoBehaviour
 {
@@ -63,6 +64,50 @@ public class PlayerController : MonoBehaviour
     public GameObject RunningUI;
     public bool started = false;
     public bool driving = false;
+
+    string GetTerrainTextureName(Vector3 worldPos)
+    {
+        Terrain terrain = Terrain.activeTerrain;
+        if (terrain == null) return null;
+
+        TerrainData terrainData = terrain.terrainData;
+        Vector3 terrainPos = terrain.transform.position;
+
+        // ワールド座標 → Terrain内の正規化座標
+        float coordX = (worldPos.x - terrainPos.x) / terrainData.size.x;
+        float coordZ = (worldPos.z - terrainPos.z) / terrainData.size.z;
+
+        // アルファマップ座標に変換
+        int mapX = Mathf.Clamp((int)(coordX * terrainData.alphamapWidth), 0, terrainData.alphamapWidth - 1);
+        int mapZ = Mathf.Clamp((int)(coordZ * terrainData.alphamapHeight), 0, terrainData.alphamapHeight - 1);
+
+        // スプラットマップ取得
+        float[,,] splatmapData = terrainData.GetAlphamaps(mapX, mapZ, 1, 1);
+
+        // 最大影響のテクスチャを探す
+        int maxIndex = 0;
+        float maxMix = 0f;
+
+        for (int i = 0; i < splatmapData.GetLength(2); i++)
+        {
+            if (splatmapData[0, 0, i] > maxMix)
+            {
+                maxMix = splatmapData[0, 0, i];
+                maxIndex = i;
+            }
+        }
+
+        // テクスチャ名取得
+        TerrainLayer[] layers = terrainData.terrainLayers;
+
+        if (layers != null && layers.Length > maxIndex)
+        {
+            return layers[maxIndex].name;
+        }
+
+        return null;
+    }
+
     void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -286,7 +331,7 @@ public class PlayerController : MonoBehaviour
 
             rb.MoveRotation(newRotation);
         }
-        if (touchingStages > 0 || (Action == "WallRun"))
+        if (touchingStages > 0 || (Action == "WallRun") || GetTerrainTextureName(transform.position) == "Soil2")
         {
             speedDivisor = 1.033f;
         }
@@ -371,11 +416,21 @@ public class PlayerController : MonoBehaviour
     {
         touchingObjects++;
         jumpCount = 0;
+        
+        if (collision.gameObject.tag == "Stage")
+        {
+            touchingStages++;
+        }
     }
 
     void OnCollisionExit(Collision collision)
     {
         touchingObjects--;
+        
+        if (collision.gameObject.tag == "Stage")
+        {
+            touchingStages--;
+        }
     }
 
     void startAction(InputAction.CallbackContext context)
