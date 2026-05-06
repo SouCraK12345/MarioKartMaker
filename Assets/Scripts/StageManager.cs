@@ -24,8 +24,12 @@ public class StageManager : MonoBehaviour
     private bool pauseMenuOpening;
     private int PauseButtonIndex;
     private InputSystem_Actions inputActions;
+    public AudioClip ShowMapSound;
+    public AudioClip CloseMapSound;
+    private AudioSource audioSource;
     void Start()
     {
+        Cursor.visible = false;
         MapCamera.SetActive(false);
         SceneManager.LoadScene("Menu", LoadSceneMode.Additive);
         MainPlayer.GetComponent<CPU>().autoDriving = true;
@@ -37,8 +41,8 @@ public class StageManager : MonoBehaviour
 
     void Awake()
     {
+        audioSource = GetComponent<AudioSource>();
         inputActions = new InputSystem_Actions();
-        GetComponent<PlayerInput>().neverAutoSwitchControlSchemes = true;
     }
 
     void OnEnable()
@@ -47,6 +51,7 @@ public class StageManager : MonoBehaviour
         inputActions.UI.Pause.performed += PauseAction;
         inputActions.UI.Navigate.performed += PauseNavigate;
         inputActions.UI.Submit.performed += PauseSubmit;
+        inputActions.UI.Cancel.performed += CancelAction;
         inputActions.UI.Map.performed += SwitchMap;
     }
     void OnDisable()
@@ -55,6 +60,7 @@ public class StageManager : MonoBehaviour
         inputActions.UI.Pause.performed -= PauseAction;
         inputActions.UI.Navigate.performed -= PauseNavigate;
         inputActions.UI.Submit.performed -= PauseSubmit;
+        inputActions.UI.Cancel.performed -= CancelAction;
         inputActions.UI.Map.performed -= SwitchMap;
     }
 
@@ -114,11 +120,13 @@ public class StageManager : MonoBehaviour
         {
             if (!mapOpening)
             {
-                OpenMap();
+                audioSource.PlayOneShot(ShowMapSound);
+                Invoke("OpenMap", 0.5f);
             }
             else
             {
-                CloseMap();
+                audioSource.PlayOneShot(CloseMapSound);
+                Invoke("CloseMap", 0.2f);
             }
         }
     }
@@ -126,14 +134,31 @@ public class StageManager : MonoBehaviour
     {
         mapOpening = true;
         MainPlayer.GetComponent<PlayerController>().driving = false;
+        MainPlayer.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
         MainCamera.SetActive(false);
+        Vector3 playerPosition = MainPlayer.transform.position;
+        playerPosition.y = 1000;
+        MapCamera.transform.position = playerPosition;
         MapCamera.SetActive(true);
     }
     void CloseMap()
     {
         mapOpening = false;
         MainPlayer.GetComponent<PlayerController>().driving = true;
+        MainPlayer.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeRotation;
         MainCamera.SetActive(true);
         MapCamera.SetActive(false);
+    }
+    void CancelAction(InputAction.CallbackContext ctx)
+    {
+
+        if (GlobalVariables.playMode == "FreeRun")
+        {
+            if (mapOpening)
+            {
+                audioSource.PlayOneShot(CloseMapSound);
+                Invoke("CloseMap", 0.2f);
+            }
+        }
     }
 }

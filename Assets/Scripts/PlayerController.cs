@@ -36,6 +36,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private List<GameObject> ParticleSystems;
     public int jumpCount = 0;
     public GameObject forCamera;
+    public Light dirLight;
+    public GameObject FrontLight;
     private float angle_horizontal = 0;
     private float angle_vertical = 0.4f;
     private float distance = 6f; // カメラの距離
@@ -64,6 +66,24 @@ public class PlayerController : MonoBehaviour
     public GameObject RunningUI;
     public bool started = false;
     public bool driving = false;
+
+    bool IsInShadow()
+    {
+        Vector3 lightDir = -dirLight.transform.forward;
+
+        Ray ray = new Ray(transform.position, lightDir);
+        RaycastHit hit;
+
+        // ライト方向に障害物があるか
+        if (Physics.Raycast(ray, out hit))
+        {
+            // 自分以外に当たったら影
+            if (hit.transform != transform)
+                return true;
+        }
+
+        return false;
+    }
 
     string GetTerrainTextureName(Vector3 worldPos)
     {
@@ -230,6 +250,9 @@ public class PlayerController : MonoBehaviour
             model.SetInteger("WallRun", 0);
             rb.useGravity = true;
         }
+
+        FrontLight.SetActive(IsInShadow());
+
         float elapsed = Time.time - startTime;
 
         int minutes = (int)(elapsed / 60);
@@ -486,6 +509,7 @@ public class PlayerController : MonoBehaviour
 
     void endAction(InputAction.CallbackContext context)
     {
+        if (Action == "WallRun") return;
         Vector2 angle = inputActions.Player.Look.ReadValue<Vector2>();
         Vector2 angle_l = inputActions.Player.Move.ReadValue<Vector2>();
         // Debug.Log("Rボタンが押された");
