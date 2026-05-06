@@ -224,6 +224,12 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+
+        if (!rb.useGravity && Action == "None")
+        {
+            model.SetInteger("WallRun", 0);
+            rb.useGravity = true;
+        }
         float elapsed = Time.time - startTime;
 
         int minutes = (int)(elapsed / 60);
@@ -416,7 +422,7 @@ public class PlayerController : MonoBehaviour
     {
         touchingObjects++;
         jumpCount = 0;
-        
+
         if (collision.gameObject.tag == "Stage")
         {
             touchingStages++;
@@ -426,7 +432,7 @@ public class PlayerController : MonoBehaviour
     void OnCollisionExit(Collision collision)
     {
         touchingObjects--;
-        
+
         if (collision.gameObject.tag == "Stage")
         {
             touchingStages--;
@@ -532,8 +538,8 @@ public class PlayerController : MonoBehaviour
     void stopWallRun()
     {
         model.SetInteger("WallRun", 0);
-        Action = "None";
         rb.useGravity = true;
+        Action = "None";
     }
 
     void ShowResult()

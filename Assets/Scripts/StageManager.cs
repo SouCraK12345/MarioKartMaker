@@ -15,14 +15,18 @@ public static class GlobalVariables
 public class StageManager : MonoBehaviour
 {
     public GameObject MainPlayer;
+    public GameObject MainCamera;
+    public GameObject MapCamera;
     public GameObject RunningUI;
     public GameObject PauseUI;
     public List<GameObject> PauseButtons;
+    private bool mapOpening;
     private bool pauseMenuOpening;
     private int PauseButtonIndex;
     private InputSystem_Actions inputActions;
     void Start()
     {
+        MapCamera.SetActive(false);
         SceneManager.LoadScene("Menu", LoadSceneMode.Additive);
         MainPlayer.GetComponent<CPU>().autoDriving = true;
         MainPlayer.GetComponent<CPU>().autoCamera = true;
@@ -43,6 +47,7 @@ public class StageManager : MonoBehaviour
         inputActions.UI.Pause.performed += PauseAction;
         inputActions.UI.Navigate.performed += PauseNavigate;
         inputActions.UI.Submit.performed += PauseSubmit;
+        inputActions.UI.Map.performed += SwitchMap;
     }
     void OnDisable()
     {
@@ -50,6 +55,7 @@ public class StageManager : MonoBehaviour
         inputActions.UI.Pause.performed -= PauseAction;
         inputActions.UI.Navigate.performed -= PauseNavigate;
         inputActions.UI.Submit.performed -= PauseSubmit;
+        inputActions.UI.Map.performed -= SwitchMap;
     }
 
     void Update()
@@ -101,5 +107,33 @@ public class StageManager : MonoBehaviour
             PauseUI.SetActive(false);
             pauseMenuOpening = false;
         }
+    }
+    void SwitchMap(InputAction.CallbackContext ctx)
+    {
+        if (GlobalVariables.playMode == "FreeRun")
+        {
+            if (!mapOpening)
+            {
+                OpenMap();
+            }
+            else
+            {
+                CloseMap();
+            }
+        }
+    }
+    void OpenMap()
+    {
+        mapOpening = true;
+        MainPlayer.GetComponent<PlayerController>().driving = false;
+        MainCamera.SetActive(false);
+        MapCamera.SetActive(true);
+    }
+    void CloseMap()
+    {
+        mapOpening = false;
+        MainPlayer.GetComponent<PlayerController>().driving = true;
+        MainCamera.SetActive(true);
+        MapCamera.SetActive(false);
     }
 }
