@@ -183,7 +183,7 @@ public class PlayerController : MonoBehaviour
         // ドリフト中の累積角度を加算
         if (Action == "Drift")
         {
-            driftAngleSum += Mathf.Abs(angle.x + angle_l.x) * (Time.deltaTime * 60); // 1フレームごとの角度変化を加算
+            driftAngleSum += Math.Max(Mathf.Abs(angle.x + angle_l.x), Mathf.Abs(minDrift)) * (Time.deltaTime * 60); // 1フレームごとの角度変化を加算
         }
 
         int phase = 0;
