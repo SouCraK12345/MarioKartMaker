@@ -20,10 +20,8 @@ public class SimpleBuoyancy : MonoBehaviour
 
     void OnTriggerEnter(Collider collider)
     {
-        Debug.Log(collider.gameObject.tag);
         if (collider.gameObject.tag == "Player")
         {
-            Debug.Log("collider.gameObject.tag");
             TouchingPlayers.Add(collider.gameObject);
         }
     }

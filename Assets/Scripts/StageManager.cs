@@ -51,7 +51,6 @@ public class StageManager : MonoBehaviour
         inputActions.UI.Pause.performed += PauseAction;
         inputActions.UI.Navigate.performed += PauseNavigate;
         inputActions.UI.Submit.performed += PauseSubmit;
-        inputActions.UI.Cancel.performed += CancelAction;
         inputActions.UI.Map.performed += SwitchMap;
     }
     void OnDisable()
@@ -60,7 +59,6 @@ public class StageManager : MonoBehaviour
         inputActions.UI.Pause.performed -= PauseAction;
         inputActions.UI.Navigate.performed -= PauseNavigate;
         inputActions.UI.Submit.performed -= PauseSubmit;
-        inputActions.UI.Cancel.performed -= CancelAction;
         inputActions.UI.Map.performed -= SwitchMap;
     }
 
@@ -149,9 +147,8 @@ public class StageManager : MonoBehaviour
         MainCamera.SetActive(true);
         MapCamera.SetActive(false);
     }
-    void CancelAction(InputAction.CallbackContext ctx)
+    public void CancelAction(InputAction.CallbackContext ctx)
     {
-
         if (GlobalVariables.playMode == "FreeRun")
         {
             if (mapOpening)
