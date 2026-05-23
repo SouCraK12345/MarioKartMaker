@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework.Constraints;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -19,13 +21,16 @@ public class StageManager : MonoBehaviour
     public GameObject MapCamera;
     public GameObject RunningUI;
     public GameObject PauseUI;
+    public GameObject Spawners;
     public List<GameObject> PauseButtons;
+    private string moveTo;
     private bool mapOpening;
     private bool pauseMenuOpening;
     private int PauseButtonIndex;
     private InputSystem_Actions inputActions;
     public AudioClip ShowMapSound;
     public AudioClip CloseMapSound;
+    public AudioClip MoveSound;
     private AudioSource audioSource;
     void Start()
     {
@@ -50,7 +55,7 @@ public class StageManager : MonoBehaviour
         inputActions.Enable();
         inputActions.UI.Pause.performed += PauseAction;
         inputActions.UI.Navigate.performed += PauseNavigate;
-        inputActions.UI.Submit.performed += PauseSubmit;
+        inputActions.UI.Submit.performed += OnSubmit;
         inputActions.UI.Map.performed += SwitchMap;
     }
     void OnDisable()
@@ -58,7 +63,7 @@ public class StageManager : MonoBehaviour
         inputActions.Disable();
         inputActions.UI.Pause.performed -= PauseAction;
         inputActions.UI.Navigate.performed -= PauseNavigate;
-        inputActions.UI.Submit.performed -= PauseSubmit;
+        inputActions.UI.Submit.performed -= OnSubmit;
         inputActions.UI.Map.performed -= SwitchMap;
     }
 
@@ -99,17 +104,31 @@ public class StageManager : MonoBehaviour
             index++;
         }
     }
-    void PauseSubmit(InputAction.CallbackContext ctx)
+    void OnSubmit(InputAction.CallbackContext ctx)
     {
-        if (PauseButtonIndex % 2 == 0)
+        if (pauseMenuOpening)
         {
-            string currentSceneName = SceneManager.GetActiveScene().name;
-            SceneManager.LoadScene(currentSceneName);
+            if (PauseButtonIndex % 2 == 0)
+            {
+                string currentSceneName = SceneManager.GetActiveScene().name;
+                SceneManager.LoadScene(currentSceneName);
+            }
+            else
+            {
+                PauseUI.SetActive(false);
+                pauseMenuOpening = false;
+            }
         }
-        else
+        else if (mapOpening)
         {
-            PauseUI.SetActive(false);
-            pauseMenuOpening = false;
+            moveTo = MapCamera.GetComponent<MapCameraController>().OnSubmit();
+            if (moveTo != "")
+            {
+                audioSource.PlayOneShot(MoveSound);
+                Invoke("MapMove", 1.0f);
+                Invoke("MovedMap", 1.5f);
+                inputActions.UI.Submit.performed -= OnSubmit;
+            }
         }
     }
     void SwitchMap(InputAction.CallbackContext ctx)
@@ -127,6 +146,18 @@ public class StageManager : MonoBehaviour
                 Invoke("CloseMap", 0.2f);
             }
         }
+    }
+    void MapMove()
+    {
+        Transform spawnPoint = Spawners.transform.Find(moveTo).transform;
+        MainPlayer.transform.position = spawnPoint.position;
+        MainPlayer.transform.rotation = spawnPoint.rotation;
+        MapCamera.GetComponent<MapCameraController>().HideFreeRunDialog();
+    }
+    void MovedMap()
+    {
+        CloseMap();
+        inputActions.UI.Submit.performed += OnSubmit;
     }
     void OpenMap()
     {

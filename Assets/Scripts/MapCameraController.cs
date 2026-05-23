@@ -16,6 +16,7 @@ public class MapCameraController : MonoBehaviour
     public BlackOutMaker BlackOutVideoPlayer;
     private Transform[] children; // 12行目: 型を指定して宣言のみ行う
     private int selectedChildrenIndex;
+    private string closestPlace;
     void Start()
     {
         var childIndex = 0;
@@ -35,13 +36,11 @@ public class MapCameraController : MonoBehaviour
     {
         inputActions.Enable();
         inputActions.UI.Cancel.performed += CancelAction;
-        inputActions.UI.Submit.performed += OnSubmit;
     }
     void OnDisable()
     {
         inputActions.Disable();
         inputActions.UI.Cancel.performed -= CancelAction;
-        inputActions.UI.Submit.performed -= OnSubmit;
     }
     void Update()
     {
@@ -59,11 +58,15 @@ public class MapCameraController : MonoBehaviour
             transform.position += new Vector3(dir.x, 0, dir.y);
         }
     }
-    void OnSubmit(InputAction.CallbackContext ctx)
+    public string OnSubmit()
     {
         if (StartFreeRunVisible)
         {
             BlackOutVideoPlayer.BlackOut();
+            StartFreeRunVisible = false;
+            Invoke("BlackOpenPlay", 1.5f);
+            inputActions.UI.Cancel.performed -= CancelAction;
+            return closestPlace;
         }
         else
         {
@@ -78,21 +81,34 @@ public class MapCameraController : MonoBehaviour
                 {
                     selectedChildrenIndex = index;
                     shortest_distance = distance;
+                    closestPlace = i.name;
                 }
                 index++;
             }
+            return "";
         }
     }
     void CancelAction(InputAction.CallbackContext ctx)
     {
         if (StartFreeRunVisible)
         {
-            StartFreeRunVisible = false;
-            StartFreeRunObj.SetActive(false);
+            HideFreeRunDialog();
         }
         else
         {
             StageManagerObj.CancelAction(ctx);
         }
+    }
+
+    public void HideFreeRunDialog()
+    {
+        StartFreeRunVisible = false;
+        StartFreeRunObj.SetActive(false);
+    }
+
+    void BlackOpenPlay()
+    {
+        BlackOutVideoPlayer.BlackOpen();
+        inputActions.UI.Cancel.performed += CancelAction;
     }
 }
